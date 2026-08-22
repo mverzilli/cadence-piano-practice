@@ -5,8 +5,8 @@ export const metadata: Metadata = {
   title: "Cadence — Assisted Piano Practice",
   description: "A thoughtful piano practice companion for diagnosing, experimenting, and building reliable control.",
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    icon: [{ url: "/favicon.ico", type: "image/x-icon" }],
+    shortcut: "/favicon.ico",
   },
   openGraph: {
     title: "Cadence — Assisted Piano Practice",
