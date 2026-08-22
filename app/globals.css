@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+@import "../styles.css";
+
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid rgba(221,90,69,.28);outline-offset:2px}
+.persistence-pill{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid var(--line);border-radius:99px;font:600 9px "DM Sans",sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.persistence-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:#839668}.persistence-pill.saving::before{background:var(--coral);animation:pulse 1s infinite}.persistence-pill.error::before{background:#b23535}
+.session-error{color:#a23830;font-size:12px;margin:12px 0}.history-note{font-size:11px;color:var(--muted);margin-top:12px}@keyframes pulse{50%{opacity:.3}}
