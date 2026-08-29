@@ -35,3 +35,29 @@ export async function POST(request: Request) {
     return Response.json({ error: error instanceof Error ? error.message : "Unable to save session" }, { status: 500 });
   }
 }
+
+export async function PATCH(request: Request) {
+  try {
+    const body = await request.json() as Record<string, unknown>;
+    const id = Number(body.id);
+    if (!id) return Response.json({ error: "A session id is required" }, { status: 400 });
+    const fromMeasure = Math.max(1, Number(body.fromMeasure) || 1);
+    const toMeasure = Math.max(fromMeasure, Number(body.toMeasure) || fromMeasure);
+    const [session] = await getDb().update(sessions).set({
+      fromMeasure,
+      fromBeat: Math.max(1, Number(body.fromBeat) || 1),
+      toMeasure,
+      toBeat: Math.max(1, Number(body.toBeat) || 1),
+      goal: String(body.goal ?? ""),
+      repetitions: Math.max(0, Number(body.repetitions) || 0),
+      primaryFocus: String(body.primaryFocus ?? ""),
+      pressureResult: String(body.pressureResult ?? ""),
+      reflection: String(body.reflection ?? ""),
+      review: body.review !== false,
+    }).where(eq(sessions.id, id)).returning();
+    if (!session) return Response.json({ error: "Session not found" }, { status: 404 });
+    return Response.json({ session });
+  } catch (error) {
+    return Response.json({ error: error instanceof Error ? error.message : "Unable to update session" }, { status: 500 });
+  }
+}
