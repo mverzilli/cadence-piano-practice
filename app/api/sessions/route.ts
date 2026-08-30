@@ -60,7 +60,7 @@ export async function PATCH(request: Request) {
     if (enumError) return Response.json({ error: enumError }, { status: 400 });
     const [piece] = await db.select().from(pieces).where(eq(pieces.id, existingSession.pieceId)).limit(1);
     if (!piece) return Response.json({ error: "Piece not found" }, { status: 404 });
-    const coordinateError = validateSessionCoordinates(body, piece.timeSignature);
+    const coordinateError = validateSessionCoordinates(body, piece.timeSignature, existingSession);
     if (coordinateError) return Response.json({ error: coordinateError }, { status: 400 });
     const fromMeasure = Number(body.fromMeasure);
     const toMeasure = Number(body.toMeasure);
