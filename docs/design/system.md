@@ -125,6 +125,9 @@ they do not authorize fixes outside a reviewed change.
   Prompt defined by `C-PRACTICE-PROMPT`.
 - The timer control visually resembles audio recording.
 - Coordinate ordering and meter bounds are not consistently enforced server-side.
+- Enumerated meter, observation, focus, priority, and result values are not
+  enforced server-side; the active handlers can persist arbitrary values,
+  including values embedded in serialized Spots.
 - Random Piece selection is not user-scoped by the data model.
 - Product tests do not cover the normative workflow or persistence behavior.
 - Existing rendered-HTML tests still specify the removed starter experience.
