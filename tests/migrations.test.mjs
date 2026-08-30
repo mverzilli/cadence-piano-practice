@@ -14,7 +14,7 @@ async function apply(db, filename) {
   db.exec(sql);
 }
 
-test("Session meter migration backfills the referenced Piece meter", async () => {
+test("Session meter migrations backfill value and inferred provenance", async () => {
   const db = new DatabaseSync(":memory:");
   try {
     for (const migration of migrations) await apply(db, migration);
@@ -25,9 +25,14 @@ test("Session meter migration backfills the referenced Piece meter", async () =>
     `);
 
     await apply(db, "0003_vengeful_ikaris.sql");
+    await apply(db, "0004_regular_zuras.sql");
 
-    const migrated = db.prepare("SELECT time_signature AS timeSignature FROM sessions WHERE id = 1").get();
+    const migrated = db.prepare(`
+      SELECT time_signature AS timeSignature, time_signature_inferred AS timeSignatureInferred
+      FROM sessions WHERE id = 1
+    `).get();
     assert.equal(migrated.timeSignature, "6/8");
+    assert.equal(migrated.timeSignatureInferred, 1);
   } finally {
     db.close();
   }

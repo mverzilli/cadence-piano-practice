@@ -1,0 +1,1 @@
+ALTER TABLE `sessions` ADD `time_signature_inferred` integer DEFAULT true NOT NULL;

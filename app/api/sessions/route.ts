@@ -31,6 +31,7 @@ export async function POST(request: Request) {
     const [session] = await db.insert(sessions).values({
       pieceId,
       timeSignature: piece.timeSignature,
+      timeSignatureInferred: false,
       fromMeasure: Number(body.fromMeasure) || 1,
       fromBeat: Number(body.fromBeat) || 1,
       toMeasure: Number(body.toMeasure) || 1,
@@ -59,7 +60,8 @@ export async function PATCH(request: Request) {
     if (!existingSession) return Response.json({ error: "Session not found" }, { status: 404 });
     const enumError = validateSessionEnums(body, existingSession);
     if (enumError) return Response.json({ error: enumError }, { status: 400 });
-    const coordinateError = validateSessionCoordinates(body, existingSession.timeSignature);
+    const preservedPassage = existingSession.timeSignatureInferred ? existingSession : undefined;
+    const coordinateError = validateSessionCoordinates(body, existingSession.timeSignature, preservedPassage);
     if (coordinateError) return Response.json({ error: coordinateError }, { status: 400 });
     const fromMeasure = Number(body.fromMeasure);
     const toMeasure = Number(body.toMeasure);

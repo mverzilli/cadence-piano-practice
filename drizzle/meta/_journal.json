@@ -29,6 +29,13 @@
       "when": 1788103538174,
       "tag": "0003_vengeful_ikaris",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1788103980964,
+      "tag": "0004_regular_zuras",
+      "breakpoints": true
     }
   ]
 }

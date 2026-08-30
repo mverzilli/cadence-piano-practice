@@ -50,6 +50,9 @@ The intended semantic model is:
 - Practice Library owns Pieces and enduring Diagnosed Spots.
 - Practice Session references one Piece and its initial Practice Prompt, and
   snapshots the Piece meter used to interpret its historical coordinates.
+- A backfilled meter snapshot records that it was inferred. An inferred snapshot
+  may preserve unchanged historical coordinates that exceed its bound; new or
+  edited coordinates may not use that exception.
 - Spot Encounter connects a Practice Session to an enduring Diagnosed Spot.
 - Practice Session owns one Session Result.
 
@@ -132,6 +135,9 @@ they do not authorize fixes outside a reviewed change.
 - The timer control visually resembles audio recording.
 - Opaque legacy meter values remain usable but cannot supply a beat upper bound.
   Audit and migrate any such values, then remove their compatibility exception.
+- Backfilled Session meters remain marked as inferred. Add a way to confirm or
+  correct each historical meter before clearing that provenance and removing
+  its unchanged-coordinate compatibility exception.
 - Random Piece selection is not user-scoped by the data model.
 - Product tests do not cover the normative workflow or persistence behavior.
 - Existing rendered-HTML tests still specify the removed starter experience.
