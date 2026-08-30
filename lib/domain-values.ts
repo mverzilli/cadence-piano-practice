@@ -18,17 +18,26 @@ function includes(values: readonly unknown[], value: unknown) {
   return values.includes(value);
 }
 
-export function validatePieceEnums(body: Record<string, unknown>): string | null {
+export function validatePieceEnums(body: Record<string, unknown>, legacyMeter?: unknown): string | null {
   const meter = body.timeSignature ?? "4/4";
-  return includes(METERS, meter) ? null : "Invalid time signature";
+  return includes(METERS, meter) || meter === legacyMeter ? null : "Invalid time signature";
 }
 
-export function validateSessionEnums(body: Record<string, unknown>): string | null {
+type LegacySessionEnums = { primaryFocus?: unknown; pressureResult?: unknown };
+
+export function validateSessionEnums(
+  body: Record<string, unknown>,
+  legacy: LegacySessionEnums = {},
+): string | null {
   const focus = body.primaryFocus ?? "";
-  if (focus !== "" && !includes(PRACTICE_FOCUSES, focus)) return "Invalid primary focus";
+  if (focus !== "" && !includes(PRACTICE_FOCUSES, focus) && focus !== legacy.primaryFocus) {
+    return "Invalid primary focus";
+  }
 
   const result = body.pressureResult ?? "";
-  if (result !== "" && !includes(PRESSURE_RESULTS, result)) return "Invalid pressure result";
+  if (result !== "" && !includes(PRESSURE_RESULTS, result) && result !== legacy.pressureResult) {
+    return "Invalid pressure result";
+  }
 
   if (body.spots === undefined) return null;
   if (!Array.isArray(body.spots)) return "Spots must be an array";

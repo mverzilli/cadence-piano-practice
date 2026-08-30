@@ -17,9 +17,11 @@ export async function POST(request: Request) {
     const name = body.name?.trim();
     const composer = body.composer?.trim() ?? "";
     if (!name) return Response.json({ error: "Piece name is required" }, { status: 400 });
-    const enumError = validatePieceEnums(body as Record<string, unknown>);
-    if (enumError) return Response.json({ error: enumError }, { status: 400 });
     const db = getDb();
+    const [existingPiece] = await db.select().from(pieces)
+      .where(and(eq(pieces.name, name), eq(pieces.composer, composer))).limit(1);
+    const enumError = validatePieceEnums(body as Record<string, unknown>, existingPiece?.timeSignature);
+    if (enumError) return Response.json({ error: enumError }, { status: 400 });
     await db.insert(pieces).values({ name, composer, musicalKey: body.musicalKey?.trim() ?? "", timeSignature: body.timeSignature ?? "4/4" })
       .onConflictDoUpdate({ target: [pieces.name, pieces.composer], set: { musicalKey: body.musicalKey?.trim() ?? "", timeSignature: body.timeSignature ?? "4/4", updatedAt: sql`CURRENT_TIMESTAMP` } });
     const [piece] = await db.select().from(pieces).where(and(eq(pieces.name, name), eq(pieces.composer, composer))).limit(1);

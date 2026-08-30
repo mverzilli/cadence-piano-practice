@@ -35,6 +35,16 @@ test("unknown enum values are rejected", () => {
   assert.equal(validateSessionEnums({ spots: [{ notice: "Hesitation", severity: 3 }] }), "Invalid spot priority");
 });
 
+test("unchanged legacy values remain usable without admitting new invalid values", () => {
+  assert.equal(validatePieceEnums({ timeSignature: "13/16" }, "13/16"), null);
+  assert.equal(validatePieceEnums({ timeSignature: "11/8" }, "13/16"), "Invalid time signature");
+
+  const legacy = { primaryFocus: "Speed", pressureResult: "almost" };
+  assert.equal(validateSessionEnums({ primaryFocus: "Speed", pressureResult: "almost" }, legacy), null);
+  assert.equal(validateSessionEnums({ primaryFocus: "Velocity", pressureResult: "almost" }, legacy), "Invalid primary focus");
+  assert.equal(validateSessionEnums({ primaryFocus: "Speed", pressureResult: "perfect" }, legacy), "Invalid pressure result");
+});
+
 test("malformed spot collections are rejected", () => {
   assert.equal(validateSessionEnums({ spots: "[]" }), "Spots must be an array");
   assert.equal(validateSessionEnums({ spots: [null] }), "Invalid spot");

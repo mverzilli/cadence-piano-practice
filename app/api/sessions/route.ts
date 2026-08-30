@@ -48,11 +48,14 @@ export async function PATCH(request: Request) {
     const body = await request.json() as Record<string, unknown>;
     const id = Number(body.id);
     if (!id) return Response.json({ error: "A session id is required" }, { status: 400 });
-    const enumError = validateSessionEnums(body);
+    const db = getDb();
+    const [existingSession] = await db.select().from(sessions).where(eq(sessions.id, id)).limit(1);
+    if (!existingSession) return Response.json({ error: "Session not found" }, { status: 404 });
+    const enumError = validateSessionEnums(body, existingSession);
     if (enumError) return Response.json({ error: enumError }, { status: 400 });
     const fromMeasure = Math.max(1, Number(body.fromMeasure) || 1);
     const toMeasure = Math.max(fromMeasure, Number(body.toMeasure) || fromMeasure);
-    const [session] = await getDb().update(sessions).set({
+    const [session] = await db.update(sessions).set({
       fromMeasure,
       fromBeat: Math.max(1, Number(body.fromBeat) || 1),
       toMeasure,
@@ -64,7 +67,6 @@ export async function PATCH(request: Request) {
       reflection: String(body.reflection ?? ""),
       review: body.review !== false,
     }).where(eq(sessions.id, id)).returning();
-    if (!session) return Response.json({ error: "Session not found" }, { status: 404 });
     return Response.json({ session });
   } catch (error) {
     return Response.json({ error: error instanceof Error ? error.message : "Unable to update session" }, { status: 500 });
