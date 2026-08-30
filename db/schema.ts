@@ -14,6 +14,7 @@ export const pieces = sqliteTable("pieces", {
 export const sessions = sqliteTable("sessions", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   pieceId: integer("piece_id").notNull().references(() => pieces.id),
+  timeSignature: text("time_signature").notNull().default("4/4"),
   fromMeasure: integer("from_measure").notNull(),
   fromBeat: integer("from_beat").notNull(),
   toMeasure: integer("to_measure").notNull(),

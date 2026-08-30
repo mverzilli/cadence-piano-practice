@@ -70,15 +70,8 @@ test("numeric legacy meters provide bounds and opaque legacy meters preserve com
   assert.equal(validateSessionCoordinates(passage, "common time"), null);
 });
 
-test("a historical passage remains editable after its Piece meter shrinks", () => {
+test("historical coordinates validate against the Session meter snapshot", () => {
   const historicalPassage = { fromMeasure: 1, fromBeat: 1, toMeasure: 1, toBeat: 6 };
-  assert.equal(validateSessionCoordinates(historicalPassage, "4/4", historicalPassage), null);
-  assert.equal(
-    validateSessionCoordinates({ ...historicalPassage, fromBeat: 2 }, "4/4", historicalPassage),
-    "Passage beats must be within the piece meter",
-  );
-  assert.equal(
-    validateSessionCoordinates({ ...historicalPassage, fromBeat: 6, toBeat: 5 }, "4/4", historicalPassage),
-    "Passage end must not precede its start",
-  );
+  assert.equal(validateSessionCoordinates(historicalPassage, "6/8"), null);
+  assert.equal(validateSessionCoordinates(historicalPassage, "4/4"), "Passage beats must be within the piece meter");
 });

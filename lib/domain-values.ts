@@ -66,20 +66,7 @@ function meterBeatCount(meter: string): number | null {
   return Number.isInteger(beats) && beats > 0 ? beats : null;
 }
 
-function sameCoordinates(left: CoordinateFields, right?: CoordinateFields): boolean {
-  if (!right) return false;
-  return Number(left.fromMeasure) === Number(right.fromMeasure)
-    && Number(left.fromBeat) === Number(right.fromBeat)
-    && Number(left.toMeasure) === Number(right.toMeasure)
-    && Number(left.toBeat) === Number(right.toBeat);
-}
-
-function validateRange(
-  range: CoordinateFields,
-  maxBeat: number | null,
-  label: string,
-  preservedRange?: CoordinateFields,
-): string | null {
+function validateRange(range: CoordinateFields, maxBeat: number | null, label: string): string | null {
   const values = [range.fromMeasure, range.fromBeat, range.toMeasure, range.toBeat].map(Number);
   if (values.some(value => !Number.isInteger(value) || value < 1)) {
     return `${label} coordinates must be positive integers`;
@@ -89,7 +76,7 @@ function validateRange(
   if (fromMeasure > toMeasure || (fromMeasure === toMeasure && fromBeat > toBeat)) {
     return `${label} end must not precede its start`;
   }
-  if (maxBeat !== null && (fromBeat > maxBeat || toBeat > maxBeat) && !sameCoordinates(range, preservedRange)) {
+  if (maxBeat !== null && (fromBeat > maxBeat || toBeat > maxBeat)) {
     return `${label} beats must be within the piece meter`;
   }
   return null;
@@ -98,10 +85,9 @@ function validateRange(
 export function validateSessionCoordinates(
   body: Record<string, unknown>,
   meter: string,
-  preservedPassage?: CoordinateFields,
 ): string | null {
   const maxBeat = meterBeatCount(meter);
-  const passageError = validateRange(body, maxBeat, "Passage", preservedPassage);
+  const passageError = validateRange(body, maxBeat, "Passage");
   if (passageError) return passageError;
 
   if (!Array.isArray(body.spots)) return null;

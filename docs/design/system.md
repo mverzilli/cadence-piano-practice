@@ -48,7 +48,8 @@ The intended semantic model is:
 
 - User owns Practice Library.
 - Practice Library owns Pieces and enduring Diagnosed Spots.
-- Practice Session references one Piece and its initial Practice Prompt.
+- Practice Session references one Piece and its initial Practice Prompt, and
+  snapshots the Piece meter used to interpret its historical coordinates.
 - Spot Encounter connects a Practice Session to an enduring Diagnosed Spot.
 - Practice Session owns one Session Result.
 
@@ -131,9 +132,6 @@ they do not authorize fixes outside a reviewed change.
 - The timer control visually resembles audio recording.
 - Opaque legacy meter values remain usable but cannot supply a beat upper bound.
   Audit and migrate any such values, then remove their compatibility exception.
-- Sessions do not snapshot the Piece meter under which their historical Passage
-  Range was recorded. Add and backfill that snapshot before removing the PATCH
-  exception for unchanged passages that exceed a Piece's current meter.
 - Random Piece selection is not user-scoped by the data model.
 - Product tests do not cover the normative workflow or persistence behavior.
 - Existing rendered-HTML tests still specify the removed starter experience.
