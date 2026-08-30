@@ -2,9 +2,13 @@ import { desc, eq } from "drizzle-orm";
 import { getDb } from "../../../db";
 import { pieces, sessions } from "../../../db/schema";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const rows = await getDb().select({ session: sessions, piece: pieces }).from(sessions).innerJoin(pieces, eq(sessions.pieceId, pieces.id)).orderBy(desc(sessions.createdAt)).limit(50);
+    const pieceId = Number(new URL(request.url).searchParams.get("pieceId"));
+    const query = getDb().select({ session: sessions, piece: pieces }).from(sessions).innerJoin(pieces, eq(sessions.pieceId, pieces.id));
+    const rows = pieceId
+      ? await query.where(eq(sessions.pieceId, pieceId)).orderBy(desc(sessions.createdAt)).limit(1)
+      : await query.orderBy(desc(sessions.createdAt)).limit(50);
     return Response.json({ sessions: rows });
   } catch (error) {
     return Response.json({ error: error instanceof Error ? error.message : "Unable to load sessions" }, { status: 500 });
