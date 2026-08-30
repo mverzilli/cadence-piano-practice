@@ -56,9 +56,14 @@ The physical schema need not mirror every concept one-to-one, but it must
 preserve stable Spot identity, Prompt/Result separation, ownership, and valid
 references.
 
-Schema changes use reviewed, forward migrations. Existing practice data should
-remain readable or be migrated explicitly; silent destructive resets are not
-acceptable for production data.
+### S-PERSISTENCE-EVOLUTION
+
+Every change to stored structure or meaning must state how existing data remains
+usable. The reviewed change must include one of: an inspected migration; an
+audited finding that no affected data exists; or temporary backward
+compatibility with an explicit condition for removing it. Schema migrations
+and semantic value migrations are both persistence changes. Silent destructive
+resets are not acceptable for production data.
 
 ## Interfaces
 
@@ -124,7 +129,8 @@ they do not authorize fixes outside a reviewed change.
 - Latest-session restoration carries only range and goal, not the full Practice
   Prompt defined by `C-PRACTICE-PROMPT`.
 - The timer control visually resembles audio recording.
-- Coordinate ordering and meter bounds are not consistently enforced server-side.
+- Opaque legacy meter values remain usable but cannot supply a beat upper bound.
+  Audit and migrate any such values, then remove their compatibility exception.
 - Random Piece selection is not user-scoped by the data model.
 - Product tests do not cover the normative workflow or persistence behavior.
 - Existing rendered-HTML tests still specify the removed starter experience.
