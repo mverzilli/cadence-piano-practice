@@ -140,8 +140,6 @@ they do not authorize fixes outside a reviewed change.
   its unchanged-coordinate compatibility exception.
 - Random Piece selection is not user-scoped by the data model.
 - Product tests do not cover the normative workflow or persistence behavior.
-- Root `index.html` and `app.js` are an obsolete local-storage implementation;
-  the deployed runtime is the application under `app/`.
 - Starter README and example files do not describe the Cadence product.
 
 ## Current deployment assumption
