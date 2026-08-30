@@ -1,6 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 import { getDb } from "../../../db";
 import { pieces, sessions } from "../../../db/schema";
+import { validateSessionEnums } from "../../../lib/domain-values";
 
 export async function GET(request: Request) {
   try {
@@ -20,6 +21,8 @@ export async function POST(request: Request) {
     const body = await request.json() as Record<string, unknown>;
     const pieceId = Number(body.pieceId);
     if (!pieceId) return Response.json({ error: "A saved piece is required" }, { status: 400 });
+    const enumError = validateSessionEnums(body);
+    if (enumError) return Response.json({ error: enumError }, { status: 400 });
     const [session] = await getDb().insert(sessions).values({
       pieceId,
       fromMeasure: Number(body.fromMeasure) || 1,
@@ -45,6 +48,8 @@ export async function PATCH(request: Request) {
     const body = await request.json() as Record<string, unknown>;
     const id = Number(body.id);
     if (!id) return Response.json({ error: "A session id is required" }, { status: 400 });
+    const enumError = validateSessionEnums(body);
+    if (enumError) return Response.json({ error: enumError }, { status: 400 });
     const fromMeasure = Math.max(1, Number(body.fromMeasure) || 1);
     const toMeasure = Math.max(fromMeasure, Number(body.toMeasure) || fromMeasure);
     const [session] = await getDb().update(sessions).set({
