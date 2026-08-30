@@ -8,6 +8,7 @@ import {
   PRESSURE_RESULTS,
   SPOT_PRIORITIES,
   validatePieceEnums,
+  validateSessionCoordinates,
   validateSessionEnums,
 } from "../lib/domain-values.ts";
 
@@ -48,4 +49,36 @@ test("unchanged legacy values remain usable without admitting new invalid values
 test("malformed spot collections are rejected", () => {
   assert.equal(validateSessionEnums({ spots: "[]" }), "Spots must be an array");
   assert.equal(validateSessionEnums({ spots: [null] }), "Invalid spot");
+});
+
+test("passage and Spot coordinates obey positivity, meter bounds, and ordering", () => {
+  const passage = { fromMeasure: 2, fromBeat: 1, toMeasure: 2, toBeat: 4 };
+  assert.equal(validateSessionCoordinates(passage, "4/4"), null);
+  assert.equal(validateSessionCoordinates({ ...passage, fromMeasure: 0 }, "4/4"), "Passage coordinates must be positive integers");
+  assert.equal(validateSessionCoordinates({ ...passage, toBeat: 5 }, "4/4"), "Passage beats must be within the piece meter");
+  assert.equal(validateSessionCoordinates({ ...passage, fromBeat: 4, toBeat: 3 }, "4/4"), "Passage end must not precede its start");
+  assert.equal(validateSessionCoordinates({ ...passage, fromMeasure: 3 }, "4/4"), "Passage end must not precede its start");
+
+  assert.equal(validateSessionCoordinates({ ...passage, spots: [{ ...passage, toBeat: 5 }] }, "4/4"), "Spot beats must be within the piece meter");
+  assert.equal(validateSessionCoordinates({ ...passage, spots: [{ ...passage, fromBeat: 4, toBeat: 3 }] }, "4/4"), "Spot end must not precede its start");
+});
+
+test("numeric legacy meters provide bounds and opaque legacy meters preserve compatibility", () => {
+  const passage = { fromMeasure: 1, fromBeat: 1, toMeasure: 1, toBeat: 13 };
+  assert.equal(validateSessionCoordinates(passage, "13/16"), null);
+  assert.equal(validateSessionCoordinates({ ...passage, toBeat: 14 }, "13/16"), "Passage beats must be within the piece meter");
+  assert.equal(validateSessionCoordinates(passage, "common time"), null);
+});
+
+test("a historical passage remains editable after its Piece meter shrinks", () => {
+  const historicalPassage = { fromMeasure: 1, fromBeat: 1, toMeasure: 1, toBeat: 6 };
+  assert.equal(validateSessionCoordinates(historicalPassage, "4/4", historicalPassage), null);
+  assert.equal(
+    validateSessionCoordinates({ ...historicalPassage, fromBeat: 2 }, "4/4", historicalPassage),
+    "Passage beats must be within the piece meter",
+  );
+  assert.equal(
+    validateSessionCoordinates({ ...historicalPassage, fromBeat: 6, toBeat: 5 }, "4/4", historicalPassage),
+    "Passage end must not precede its start",
+  );
 });

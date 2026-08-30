@@ -1,7 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 import { getDb } from "../../../db";
 import { pieces, sessions } from "../../../db/schema";
-import { validateSessionEnums } from "../../../lib/domain-values";
+import { validateSessionCoordinates, validateSessionEnums } from "../../../lib/domain-values";
 
 export async function GET(request: Request) {
   try {
@@ -23,7 +23,12 @@ export async function POST(request: Request) {
     if (!pieceId) return Response.json({ error: "A saved piece is required" }, { status: 400 });
     const enumError = validateSessionEnums(body);
     if (enumError) return Response.json({ error: enumError }, { status: 400 });
-    const [session] = await getDb().insert(sessions).values({
+    const db = getDb();
+    const [piece] = await db.select().from(pieces).where(eq(pieces.id, pieceId)).limit(1);
+    if (!piece) return Response.json({ error: "Piece not found" }, { status: 404 });
+    const coordinateError = validateSessionCoordinates(body, piece.timeSignature);
+    if (coordinateError) return Response.json({ error: coordinateError }, { status: 400 });
+    const [session] = await db.insert(sessions).values({
       pieceId,
       fromMeasure: Number(body.fromMeasure) || 1,
       fromBeat: Number(body.fromBeat) || 1,
@@ -53,13 +58,17 @@ export async function PATCH(request: Request) {
     if (!existingSession) return Response.json({ error: "Session not found" }, { status: 404 });
     const enumError = validateSessionEnums(body, existingSession);
     if (enumError) return Response.json({ error: enumError }, { status: 400 });
-    const fromMeasure = Math.max(1, Number(body.fromMeasure) || 1);
-    const toMeasure = Math.max(fromMeasure, Number(body.toMeasure) || fromMeasure);
+    const [piece] = await db.select().from(pieces).where(eq(pieces.id, existingSession.pieceId)).limit(1);
+    if (!piece) return Response.json({ error: "Piece not found" }, { status: 404 });
+    const coordinateError = validateSessionCoordinates(body, piece.timeSignature, existingSession);
+    if (coordinateError) return Response.json({ error: coordinateError }, { status: 400 });
+    const fromMeasure = Number(body.fromMeasure);
+    const toMeasure = Number(body.toMeasure);
     const [session] = await db.update(sessions).set({
       fromMeasure,
-      fromBeat: Math.max(1, Number(body.fromBeat) || 1),
+      fromBeat: Number(body.fromBeat),
       toMeasure,
-      toBeat: Math.max(1, Number(body.toBeat) || 1),
+      toBeat: Number(body.toBeat),
       goal: String(body.goal ?? ""),
       repetitions: Math.max(0, Number(body.repetitions) || 0),
       primaryFocus: String(body.primaryFocus ?? ""),

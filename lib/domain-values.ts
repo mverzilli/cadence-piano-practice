@@ -51,3 +51,64 @@ export function validateSessionEnums(
 
   return null;
 }
+
+type CoordinateFields = {
+  fromMeasure?: unknown;
+  fromBeat?: unknown;
+  toMeasure?: unknown;
+  toBeat?: unknown;
+};
+
+function meterBeatCount(meter: string): number | null {
+  const match = /^(\d+)\/(\d+)$/.exec(meter);
+  if (!match) return null;
+  const beats = Number(match[1]);
+  return Number.isInteger(beats) && beats > 0 ? beats : null;
+}
+
+function sameCoordinates(left: CoordinateFields, right?: CoordinateFields): boolean {
+  if (!right) return false;
+  return Number(left.fromMeasure) === Number(right.fromMeasure)
+    && Number(left.fromBeat) === Number(right.fromBeat)
+    && Number(left.toMeasure) === Number(right.toMeasure)
+    && Number(left.toBeat) === Number(right.toBeat);
+}
+
+function validateRange(
+  range: CoordinateFields,
+  maxBeat: number | null,
+  label: string,
+  preservedRange?: CoordinateFields,
+): string | null {
+  const values = [range.fromMeasure, range.fromBeat, range.toMeasure, range.toBeat].map(Number);
+  if (values.some(value => !Number.isInteger(value) || value < 1)) {
+    return `${label} coordinates must be positive integers`;
+  }
+
+  const [fromMeasure, fromBeat, toMeasure, toBeat] = values;
+  if (fromMeasure > toMeasure || (fromMeasure === toMeasure && fromBeat > toBeat)) {
+    return `${label} end must not precede its start`;
+  }
+  if (maxBeat !== null && (fromBeat > maxBeat || toBeat > maxBeat) && !sameCoordinates(range, preservedRange)) {
+    return `${label} beats must be within the piece meter`;
+  }
+  return null;
+}
+
+export function validateSessionCoordinates(
+  body: Record<string, unknown>,
+  meter: string,
+  preservedPassage?: CoordinateFields,
+): string | null {
+  const maxBeat = meterBeatCount(meter);
+  const passageError = validateRange(body, maxBeat, "Passage", preservedPassage);
+  if (passageError) return passageError;
+
+  if (!Array.isArray(body.spots)) return null;
+  for (const spot of body.spots) {
+    if (!spot || typeof spot !== "object" || Array.isArray(spot)) continue;
+    const spotError = validateRange(spot as CoordinateFields, maxBeat, "Spot");
+    if (spotError) return spotError;
+  }
+  return null;
+}
